@@ -1,5 +1,5 @@
 # depslib dependency file v1.0
-1559444845 source:c:\users\gustavo\desktop\prog. software básico\huffman-t2\huffmancodinginc\main.c
+1559445392 source:c:\users\gustavo\desktop\prog. software básico\huffman-t2\huffmancodinginc\main.c
 	<stdio.h>
 	<stdlib.h>
 	<string.h>
