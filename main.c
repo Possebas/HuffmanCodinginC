@@ -11,8 +11,8 @@ typedef struct node
 {
     char caract;
     int freq;
-    //char *code;
-    //int type;
+    int code;
+    int ch;
     struct node *next;
     struct node *left;
     struct node *right;
@@ -21,40 +21,80 @@ typedef struct node
 node *HEAD = NULL;
 node *ROOT = NULL;
 
-// node *newNode(char c, int freq)
-// {
-//     node *q;
-//     q = (node *)malloc(sizeof(node));
-//     q->caract = c;
-//     //q->type = LEAF; //leafnode
-//     q->freq = freq;
-//     q->next = NULL;
-//     q->left = NULL;
-//     q->right = NULL;
-//     return q;
-// }
-
 void insert_at_begin(int freq, char x)
 {
-    struct node *t;
+    node *t;
 
-    t = (struct node *)malloc(sizeof(struct node));
+    t = (node *)malloc(sizeof(node));
     count++;
 
-    if (HEAD == NULL)
+    if (HEAD == NULL && ROOT == NULL)
     {
         HEAD = t;
         HEAD->caract = x;
         HEAD->freq = freq;
+        //HEAD->type = LEAF;
         HEAD->next = NULL;
+        HEAD->right = NULL;
+        HEAD->left = NULL;
         return;
     }
 
     t->caract = x;
     t->freq = freq;
+    //t->type = LEAF;
+    t->right = NULL;
+    t->left = NULL;
     t->next = HEAD;
     HEAD = t;
 }
+
+int delete_from_begin()
+{
+    node *t;
+    char n;
+    int numFreq = 0;
+
+    if (HEAD == NULL)
+    {
+        printf("Linked list is already empty.\n");
+        return;
+    }
+
+    n = HEAD->caract;
+    numFreq = HEAD->freq;
+    t = HEAD->next;
+    free(HEAD);
+    HEAD = t;
+    count--;
+    //printf("\n Par [%c,%d] deleted from beginning successfully.\n",numFreq);
+    return numFreq;
+}
+
+
+// void treeH(node *head)
+// {
+//     node *p, *q, *newNode;
+//     newNode = malloc(sizeof(node));
+//     newNode->left = head->next;
+//     newNode->right = head->next->next;
+//     head->next = newNode->right->next;
+//     newNode->left->next = NULL;
+//     newNode->right->next = NULL;
+//     newNode->ch = 35;
+//     strcpy(newNode->code, "");
+//     newNode->freq = (newNode->left->freq) + (newNode->right->freq);
+
+//     p = head;
+//     q = head->next;
+//     while (q != NULL && q->freq <= newNode->freq)
+//     {
+//         p = q;
+//         q = q->next;
+//     }
+//     newNode->next = q;
+//     p->next = newNode;
+// }
 
 void imprime(node *le)
 {
@@ -65,22 +105,7 @@ void imprime(node *le)
     }
 }
 
-// void busca_e_remove(char y, celula *le)
-// {
-//     celula *p, *q;
-//     p = le;
-//     q = le->prox;
-//     while (q != NULL && q->caract != y)
-//     {
-//         p = q;
-//         q = q->prox;
-//     }
-//     if (q != NULL)
-//     {
-//         p->prox = q->prox;
-//         free(q);
-//     }
-// }
+
 
 int main()
 {
@@ -111,10 +136,14 @@ int main()
             insert_at_begin(numberChars[i], i);
         }
     }
-    printf("\n");
-    imprime(HEAD);
-    printf("\n");
 
+    printf("\n\n");
+    imprime(HEAD);
+    printf("\n\n");
+    //treeH(HEAD);
+    printf("\n\n");
+    //printf("Nodo removido foi: [%c,%d]", desk.caract, desk.freq);
+    printf("\n");
     //printf("\nHello world!\n");
     return 0;
 }
