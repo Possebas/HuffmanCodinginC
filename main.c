@@ -1,3 +1,5 @@
+//Alunos: Gustavo Possebon e Bernardo de Cesaro
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -45,12 +47,22 @@ typedef struct dic
 
 struct dic dicioCode[20];
 
-/* Aloca o espaço de memória para o novo nodo da lista e aponta uma arvore para ele */
+/*
+   Protótipos
+*/
+linkedListNodes *insertNodeLinkedList(nodeOfTree *new_Node);
+nodeOfTree *insertNodeTree(unique c, int frequency, nodeOfTree *left, nodeOfTree *right);
+void insertOrderly(linkedListNodes *value, listProps *list);
+nodeOfTree *returnMin(listProps *list);
+nodeOfTree *dibbeHuff(int *listFrequency);
+void removeOfMemory(nodeOfTree *value);
+void generateCodeOfChars(nodeOfTree *root, char arr[], int len, int count);
 
 //----------------------------------------------------------------------------------//
 
-linkedListNodes *insertNodeLinkedList(nodeOfTree *new_Node)
-{
+
+/* Aloca o espaço de memória para o novo nodo da lista e aponta uma arvore para ele */
+linkedListNodes *insertNodeLinkedList(nodeOfTree *new_Node){
 
     linkedListNodes *aux;
 
