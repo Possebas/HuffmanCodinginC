@@ -245,4 +245,5 @@ int main()
     printf("Tabela de caracteres codificados\n");
     printf("\nCaractere\tFrequencia\tHuffman\n");
     generateCodeOfChars(raiz,listFrequency,0,0); //gera o codigo e imprime parelalemente os seus caracteres, frequencias e valores de huffman.
+    removeOfMemory(raiz);
 }
