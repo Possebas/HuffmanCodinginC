@@ -1,149 +1,248 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#define INTERNAL 1
-#define LEAF 0
 #define SPACE #
+#define TAM 256
+#define ESQUERDA 0
+#define DIREITA 1
 
-int count = 0;
+//Utilizamos um char sem sinal para melhor compreensão do código
+typedef unsigned char unique;
 
-typedef struct node
+/*
+Estrutura básica de um nodo que está inserido na árvore
+Atributos: frequência, código(representação binária), caractere, referência para esquerda e direita.
+ */
+typedef struct nodeOfTree
 {
-    char caract;
-    int freq;
-    int code;
-    int ch;
-    struct node *next;
-    struct node *left;
-    struct node *right;
-} node;
-
-node *HEAD = NULL;
-node *ROOT = NULL;
-
-void insert_at_begin(int freq, char x)
+    int frequency;
+    char code;
+    unique c;
+    struct nodeOfTree *left;
+    struct nodeOfTree *right;
+} nodeOfTree;
+/*
+Estruturação da lista encadeada de nodos
+Atributos: valor e referência pro próximo.
+ */
+typedef struct linkedListNodes
 {
-    node *t;
+    nodeOfTree *value;
+    struct linkedListNodes *next;
+} linkedListNodes;
+/*Estrutura simples apenas para guardar a refêrencia do primeiro elemento da lista e contador dos elementos contidos nela.*/
+typedef struct listProps
+{
+    linkedListNodes *head;
+    int count;
+} listProps;
 
-    t = (node *)malloc(sizeof(node));
-    count++;
+typedef struct dic
+{
+    char key;
+    char value[20];
+}dic;
+struct dic dicionario[20];
 
-    if (HEAD == NULL && ROOT == NULL)
+/* Aloca o espaço de memória para o novo nodo da lista e aponta uma arvore para ele */
+
+linkedListNodes *insertNodeLinkedList(nodeOfTree *new_Node)
+{
+
+    linkedListNodes *aux;
+
+    if ((aux = malloc(sizeof(*aux))) == NULL)
     {
-        HEAD = t;
-        HEAD->caract = x;
-        HEAD->freq = freq;
-        //HEAD->type = LEAF;
-        HEAD->next = NULL;
-        HEAD->right = NULL;
-        HEAD->left = NULL;
+        return NULL;
+    }
+    aux->value = new_Node;
+
+    aux->next = NULL;
+
+    return aux;
+}
+
+/* Aloca o espaço de memória para o novo nodo da árvore e aponta uma arvore para ele
+    Recebe por parâmetro: o caractere, frequencia, referência da esquerda e direita dele
+*/
+
+nodeOfTree *insertNodeTree(unique c, int frequency, nodeOfTree *left, nodeOfTree *right)
+{
+
+    nodeOfTree *aux;
+
+    if ((aux = malloc(sizeof(*aux))) == NULL)
+    {
+        return NULL;
+    }
+
+    aux->c = c;
+    aux->frequency = frequency;
+    aux->left = left;
+    aux->right = right;
+
+    return aux;
+}
+
+/*
+    Inserindo ordenado novamente na lista encadeada fazendo assim uma lista de prioridade
+ */
+
+void insertOrderly(linkedListNodes *value, listProps *list)
+{
+
+    if (!list->head)
+    {
+        list->head = value;
+    }
+
+    else if (value->value->frequency < list->head->value->frequency)
+    {
+        value->next = list->head;
+        list->head = value;
+    }
+    else
+    {
+
+        linkedListNodes *aux = list->head->next;
+
+        linkedListNodes *aux2 = list->head;
+
+        while (aux && aux->value->frequency <= value->value->frequency)
+        {
+            aux2 = aux;
+            aux = aux2->next;
+        }
+
+        aux2->next = value;
+        value->next = aux;
+    }
+
+    list->count++;
+}
+
+/*
+    Remove o primeiro nodo da lista, aquele com menor frequencia
+ */
+nodeOfTree *returnMin(listProps *list)
+{
+
+    linkedListNodes *aux = list->head;
+
+    nodeOfTree *aux2 = aux->value;
+
+    list->head = aux->next;
+
+    free(aux);
+    aux = NULL;
+
+    list->count--;
+
+    return aux2;
+}
+/*
+    Principalmente função que é responsável por criar a árvore de huffman, porém sem código nesta parte.
+ */
+nodeOfTree *dibbeHuff(int *listFrequency)
+{
+
+    listProps list = {NULL, 0};
+
+    for (int i = 0; i < 256; i++)
+    {
+        if (listFrequency[i])
+        {
+            printf("Caracterer e sua frequencia => [%c:%d]\n", i, listFrequency[i]);
+
+            insertOrderly(insertNodeLinkedList(insertNodeTree(i, listFrequency[i], NULL, NULL)), &list);
+        }
+    }
+    /* Vai removendo e inserindo ordenado na árvore */
+    while (list.count > 1)
+    {
+
+        nodeOfTree *nodeEsquerdo = returnMin(&list);
+        printf("\n");
+        printf("Primeiro pop na lista com este elemento: %c, freq: %d", nodeEsquerdo->c, nodeEsquerdo->frequency);
+
+        nodeOfTree *nodeDireito = returnMin(&list);
+        printf("\n");
+        printf("Segundo pop na lista com este elemento: %c, freq: %d", nodeDireito->c, nodeDireito->frequency);
+
+        nodeOfTree *soma = insertNodeTree('#', nodeEsquerdo->frequency + nodeDireito->frequency, nodeEsquerdo, nodeDireito);
+        printf("\n");
+        printf("\ninserindo a soma das freqs na lista: %d", soma->frequency);
+        printf("\n");
+
+        insertOrderly(insertNodeLinkedList(soma), &list);
+    }
+    return returnMin(&list);
+}
+/* Função recursiva responsável por liberar mémoria de toda árvore */
+void removeOfMemory(nodeOfTree *value)
+{
+    if (!value)
         return;
-    }
-
-    t->caract = x;
-    t->freq = freq;
-    //t->type = LEAF;
-    t->right = NULL;
-    t->left = NULL;
-    t->next = HEAD;
-    HEAD = t;
-}
-
-int delete_from_begin()
-{
-    node *t;
-    char n;
-    int numFreq = 0;
-
-    if (HEAD == NULL)
+    else
     {
-        printf("Linked list is already empty.\n");
-        return;
+        nodeOfTree *left = value->left;
+        nodeOfTree *right = value->right;
+        free(value);
+        removeOfMemory(left);
+        removeOfMemory(right);
     }
-
-    n = HEAD->caract;
-    numFreq = HEAD->freq;
-    t = HEAD->next;
-    free(HEAD);
-    HEAD = t;
-    count--;
-    //printf("\n Par [%c,%d] deleted from beginning successfully.\n",numFreq);
-    return numFreq;
 }
 
-
-// void treeH(node *head)
-// {
-//     node *p, *q, *newNode;
-//     newNode = malloc(sizeof(node));
-//     newNode->left = head->next;
-//     newNode->right = head->next->next;
-//     head->next = newNode->right->next;
-//     newNode->left->next = NULL;
-//     newNode->right->next = NULL;
-//     newNode->ch = 35;
-//     strcpy(newNode->code, "");
-//     newNode->freq = (newNode->left->freq) + (newNode->right->freq);
-
-//     p = head;
-//     q = head->next;
-//     while (q != NULL && q->freq <= newNode->freq)
-//     {
-//         p = q;
-//         q = q->next;
-//     }
-//     newNode->next = q;
-//     p->next = newNode;
-// }
-
-void imprime(node *le)
+void generateCodeOfChars(nodeOfTree *root, char arr[], int len, int count)
 {
-    if (le != NULL)
+    if (root->right)
     {
-        printf(" [%c, %d]   ", le->caract, le->freq);
-        imprime(le->next);
+        arr[len] = '1';
+        generateCodeOfChars(root->right, arr, len + 1, count + 1);
+    }
+    if (root->left)
+    {
+        arr[len] = '0';
+        generateCodeOfChars(root->left, arr, len + 1, count + 1);
+    }
+
+    if (root->left == NULL)
+    {
+        arr[count] = 0;
+        printf("%c\t\t%d\t\t%s\n", root->c, root->frequency, arr);
+        dicionario[count].key = root->c;
+        strcpy(dicionario[count].value, arr);
+        count++;
     }
 }
-
-
 
 int main()
 {
-    char entrada[] = "aaaaabbbbcccdde";
-    int *numberChars = calloc(256, sizeof numberChars);
+    int listFrequency[256] = {0}; //limpa todos as posições de memórias com 0, as quais serão armazenadas as frequencias de cada caractere
+    int numberChars = 0; //contador local para numero de caracteres
 
-    printf("Caracteres da mensagem em decimal:\n");
-    for (int i = 0; i < strlen(entrada); i++)
+    FILE *file = fopen("exemplo.txt", "r"); //armazena o arquivo apenas para leitura
+
+    if (file == NULL) 
     {
-        printf(" [%d] ", entrada[i]);
-        numberChars[entrada[i]] += 1;
+        printf("Could not open the specified file!\n");
+        exit(EXIT_FAILURE); //retorna se houver erro na leitura do arquivo 
     }
-    //printf("\n\nVezes que cada caractere apareceu:\n");
-    /*
-    for(int i=0; i<255; i++){
-        if(numberChars[i] > 0){
-        printf(" [%d] ", numberChars[i]);
-        }
-    }
-    */
-    printf("\n\n");
-    printf("Caractere em ASCII          Quantidade");
-    for (int i = 0; i < 256; i++)
+
+    for (char c; (((c = fgetc(file)) != '\n') && (c != EOF));)
     {
-        if (numberChars[i] > 0)
+        if (listFrequency[c] == 0)
         {
-            printf("\n%c                              %d\n", i, numberChars[i]);
-            insert_at_begin(numberChars[i], i);
+            numberChars += 1; 
         }
+        listFrequency[c] += 1; 
     }
 
-    printf("\n\n");
-    imprime(HEAD);
-    printf("\n\n");
-    //treeH(HEAD);
-    printf("\n\n");
-    //printf("Nodo removido foi: [%c,%d]", desk.caract, desk.freq);
+    nodeOfTree *raiz = dibbeHuff(listFrequency); //executa a arvore e armazena a raíz 
     printf("\n");
-    //printf("\nHello world!\n");
-    return 0;
+    printf("Raiz com essa frequencia: %d", raiz->frequency); //imprimi a frequencia da raiz que é a soma de todas as frequencias
+    printf("\n");
+    printf("Tabela de caracteres codificados\n");
+    printf("\nCaractere\tFrequencia\tHuffman\n");
+    generateCodeOfChars(raiz,listFrequency,0,0); //gera o codigo e imprime parelalemente os seus caracteres, frequencias e valores de huffman.
 }
