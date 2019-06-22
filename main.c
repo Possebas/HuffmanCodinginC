@@ -1,5 +1,3 @@
-//Alunos: Gustavo Possebon e Bernardo de Cesaro
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -43,26 +41,13 @@ typedef struct dic
 {
     char key;
     char value[20];
-}dic;
-
-struct dic dicioCode[20];
-
-/*
-   Protótipos
-*/
-linkedListNodes *insertNodeLinkedList(nodeOfTree *new_Node);
-nodeOfTree *insertNodeTree(unique c, int frequency, nodeOfTree *left, nodeOfTree *right);
-void insertOrderly(linkedListNodes *value, listProps *list);
-nodeOfTree *returnMin(listProps *list);
-nodeOfTree *dibbeHuff(int *listFrequency);
-void removeOfMemory(nodeOfTree *value);
-void generateCodeOfChars(nodeOfTree *root, char arr[], int len, int count);
-
-//----------------------------------------------------------------------------------//
-
+} dic;
+struct dic dicionario[20];
 
 /* Aloca o espaço de memória para o novo nodo da lista e aponta uma arvore para ele */
-linkedListNodes *insertNodeLinkedList(nodeOfTree *new_Node){
+
+linkedListNodes *insertNodeLinkedList(nodeOfTree *new_Node)
+{
 
     linkedListNodes *aux;
 
@@ -167,7 +152,7 @@ nodeOfTree *dibbeHuff(int *listFrequency)
     {
         if (listFrequency[i])
         {
-            printf("Caractere e sua frequencia => [%c:%d]\n", i, listFrequency[i]);
+            printf("Caracterer e sua frequencia => [%c:%d]\n", i, listFrequency[i]);
 
             insertOrderly(insertNodeLinkedList(insertNodeTree(i, listFrequency[i], NULL, NULL)), &list);
         }
@@ -178,17 +163,15 @@ nodeOfTree *dibbeHuff(int *listFrequency)
 
         nodeOfTree *nodeEsquerdo = returnMin(&list);
         printf("\n");
-        //*POP*//
-        printf("Primeiro elemento retirado da lista: %c, freq: %d", nodeEsquerdo->c, nodeEsquerdo->frequency);
+        printf("Primeiro pop na lista com este elemento: %c, freq: %d", nodeEsquerdo->c, nodeEsquerdo->frequency);
 
         nodeOfTree *nodeDireito = returnMin(&list);
         printf("\n");
-        //*POP*//
-        printf("Segundo elemento retirado da lista: %c, freq: %d", nodeDireito->c, nodeDireito->frequency);
+        printf("Segundo pop na lista com este elemento: %c, freq: %d", nodeDireito->c, nodeDireito->frequency);
 
         nodeOfTree *soma = insertNodeTree('#', nodeEsquerdo->frequency + nodeDireito->frequency, nodeEsquerdo, nodeDireito);
         printf("\n");
-        printf("\nA soma das frequencias a ser adicionada: %d", soma->frequency);
+        printf("\ninserindo a soma das frequencias na lista: %d", soma->frequency);
         printf("\n");
 
         insertOrderly(insertNodeLinkedList(soma), &list);
@@ -210,29 +193,26 @@ void removeOfMemory(nodeOfTree *value)
     }
 }
 
-void generateCodeOfChars(nodeOfTree *root, char arr[], int len, int count)
+void generateCodeOfChars(nodeOfTree *root, char arr[], int len, int count,FILE *saida)
 {
-
-    //Adiciona 1 caso exista um nodo na direita
     if (root->right)
     {
         arr[len] = '1';
-        generateCodeOfChars(root->right, arr, len + 1, count + 1);
+        generateCodeOfChars(root->right, arr, len + 1, count + 1,saida);
     }
-    //Adiciona 0 caso exista um nodo na esquerda
     if (root->left)
     {
         arr[len] = '0';
-        generateCodeOfChars(root->left, arr, len + 1, count + 1);
+        generateCodeOfChars(root->left, arr, len + 1, count + 1,saida);
     }
 
     if (root->left == NULL)
     {
         arr[count] = 0;
-        printf("%c\t\t%d\t\t%s\n", root->c, root->frequency, arr); //Printa na tela os caracteres, suas respectivas frequências e bits
-        dicioCode[count].key = root->c;
-        //Strcpy é uma função que realiza a cópia do conteúdo de uma variável a outra
-        strcpy(dicioCode[count].value, arr);
+        printf("%c\t\t%d\t\t%s\n", root->c, root->frequency, arr);
+        fprintf(saida, "%c\t\t\t%d\t\t\t%s\n", root->c, root->frequency, arr);
+        dicionario[count].key = root->c;
+        strcpy(dicionario[count].value, arr);
         count++;
     }
 }
@@ -240,17 +220,25 @@ void generateCodeOfChars(nodeOfTree *root, char arr[], int len, int count)
 int main()
 {
     int listFrequency[256] = {0}; //limpa todos as posições de memórias com 0, as quais serão armazenadas as frequencias de cada caractere
-    int numberChars = 0; //contador local para numero de caracteres
+    int numberChars = 0;          //contador local para numero de caracteres
 
-    FILE *file = fopen("exemplo.txt", "r"); //armazena o arquivo apenas para leitura
+    FILE *entrada = fopen("teste01.txt", "r"); //armazena o arquivo apenas para leitura
+    FILE *saida = fopen("saida.piz", "w");
 
-    if (file == NULL)
+    if (entrada == NULL)
     {
         printf("Could not open the specified file!\n");
         exit(EXIT_FAILURE); //retorna se houver erro na leitura do arquivo
     }
 
-    for (char c; (((c = fgetc(file)) != '\n') && (c != EOF));)
+    if (saida == NULL)
+    {
+        printf("Could not write the specified file!\n");
+        exit(EXIT_FAILURE);
+    }
+
+
+    for (char c; (((c = fgetc(entrada)) != '\n') && (c != EOF));)
     {
         if (listFrequency[c] == 0)
         {
@@ -261,14 +249,11 @@ int main()
 
     nodeOfTree *raiz = dibbeHuff(listFrequency); //executa a arvore e armazena a raíz
     printf("\n");
-    printf("Frequencia final da Raiz: %d", raiz->frequency); //imprimi a frequencia da raiz que é a soma de todas as frequencias
+    printf("Raiz com essa frequencia: %d", raiz->frequency); //imprimi a frequencia da raiz que é a soma de todas as frequencias
     printf("\n");
-    printf("-----------------------------------");
-    printf("\n");
-    printf("Tabela de caracteres codificados\n");
-    printf("-----------------------------------");
-
-    printf("\nCaractere\tFrequencia\tHuffman\n");
-    generateCodeOfChars(raiz,listFrequency,0,0); //gera o codigo e imprime parelalemente os seus caracteres, frequencias e valores de huffman.
+    printf("\nTabela de caracteres codificados\n");
+    fputs("\nCaractere\tFrequencia\tHuffman\n", saida);
+    generateCodeOfChars(raiz, listFrequency, 0, 0,saida); //gera o codigo e imprime parelalemente os seus caracteres, frequencias e valores de huffman.
     removeOfMemory(raiz);
+
 }
